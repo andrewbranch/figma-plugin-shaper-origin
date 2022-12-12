@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@create-figma-plugin/ui": "^2.1.5",
+    "@create-figma-plugin/utilities": "^2.1.5",
+    "preact": "^10"
+  },
+  "devDependencies": {
+    "@create-figma-plugin/build": "^2.1.5",
+    "@create-figma-plugin/tsconfig": "^2.1.5",
+    "@figma/plugin-typings": "1.54.0",
+    "svgo": "^3.0.2",
+    "typescript": "^4"
+  },
+  "scripts": {
+    "build": "build-figma-plugin --typecheck --minify",
+    "watch": "build-figma-plugin --typecheck --watch",
+    "svgo": "svgo -f src/images -o src/images"
+  },
+  "figma-plugin": {
+    "editorType": [
+      "figma"
+    ],
+    "id": "shaper-origin",
+    "name": "Shaper Origin Export",
+    "main": "src/main.ts",
+    "ui": "src/ui.tsx"
+  }
+}
