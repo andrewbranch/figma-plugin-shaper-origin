@@ -2,8 +2,6 @@ import {
   Bold,
   Container,
   Divider,
-  Dropdown,
-  DropdownOption,
   Muted,
   render,
   Text,
@@ -12,48 +10,13 @@ import {
 } from '@create-figma-plugin/ui'
 import { emit, on } from '@create-figma-plugin/utilities'
 import { Fragment, h, JSX } from 'preact'
-import { useCallback, useEffect, useMemo, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { Cell, Row, Table } from './layout/Table'
 import '!./styles.css'
 
 import { CutType, FrameSelection, PathSelection, Selection, SelectionChangeHandler, SetDataHandler } from './types'
-import { assertCutType } from './utils'
-import { IconDepth16, IconGuide16, IconInside16, IconOnLine16, IconOutside16, IconPocket16 } from './icons'
-
-const cutTypeOptions: DropdownOption[] = [{
-  value: "inside",
-  text: "Inside"
-}, {
-  value: "outside",
-  text: "Outside"
-}, {
-  value: "on-line",
-  text: "On Line"
-}, {
-  value: "pocket",
-  text: "Pocket",
-}, {
-  value: "guide",
-  text: "Guide",
-}];
-
-const mixedCutTypeOptions: DropdownOption[] = [{
-  value: "Mixed",
-  disabled: true,
-  text: "Mixed"
-}, {
-  separator: true,
-}, ...cutTypeOptions];
-
-const clearOptions: DropdownOption[] = [{
-  separator: true,
-}, {
-  value: "",
-  text: "Clear"
-}]
-
-const cutTypeOptionsWithClear = [...cutTypeOptions, ...clearOptions]
-const mixedCutTypeOptionsWithClear = [...mixedCutTypeOptions, ...clearOptions]
+import { IconDepth16 } from './icons'
+import { CutTypeDropdown } from './CutTypeDropdown'
 
 function Plugin() {
   const [selection, setSelection] = useState<Selection>()
@@ -69,8 +32,8 @@ function Plugin() {
       <VerticalSpace space="large" />
       {
         selection?.kind === 'PATHS' ? <PathSelectionEditor selection={selection} /> :
-        selection?.kind === 'FRAME' ? <FrameSelectionEditor selection={selection} /> :
-        null
+          selection?.kind === 'FRAME' ? <FrameSelectionEditor selection={selection} /> :
+            null
       }
     </Container>
   )
@@ -88,6 +51,7 @@ function PathSelectionEditor(props: PathSelectionEditorProps) {
   const cutType = selection.nodes.every(node => node.cutType === selection.nodes[0].cutType)
     ? selection.nodes[0]?.cutType
     : "Mixed"
+  const shapeIsClosed = selection.nodes.every(node => node.isClosed)
   return (
     <Fragment>
       {selection.nodes.length ? (
@@ -98,7 +62,7 @@ function PathSelectionEditor(props: PathSelectionEditorProps) {
           <VerticalSpace space="medium" />
           <Table>
             <CutControls
-              key={selection.nodes.map(node => node.id).join(',')}
+              shapeIsClosed={shapeIsClosed}
               nodeIds={selection.nodes.map(node => node.id)}
               cutDepth={cutDepth?.toString()}
               cutType={cutType}
@@ -150,62 +114,43 @@ function FrameSelectionEditor(props: FrameSelectionEditorProps) {
   )
 }
 
-const noIcon16 = <span style={{ display: 'inline-block', width: 16, height: 16 }} />
-
 interface CutControlsProps {
   nodeIds: readonly string[]
+  shapeIsClosed: boolean
   label?: string
   cutDepth?: string
-  cutType?: CutType | 'Mixed' | ''
+  cutType?: CutType | 'Mixed'
 }
 
-function CutControls({ nodeIds, label, cutDepth: initialCutDepth, cutType: initialCutType }: CutControlsProps) {
+function CutControls({ nodeIds, shapeIsClosed, label, cutDepth: initialCutDepth, cutType: initialCutType }: CutControlsProps) {
   const [cutType, setCutType] = useState(initialCutType)
   const [cutDepth, setCutDepth] = useState(initialCutDepth)
-  const onCutTypeChange = useCallback((event: JSX.TargetedEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.value
-    if (value !== "") {
-      assertCutType(value)
-    }
-    setCutType(value)
-    emit<SetDataHandler>('SET_DATA', { nodeIds, cutType: value })
+  const onCutTypeChange = useCallback((cutType: CutType | "") => {
+    setCutType(cutType || undefined)
+    emit<SetDataHandler>('SET_DATA', { nodeIds, cutType })
   }, [nodeIds])
   const onCutDepthChange = useCallback((event: JSX.TargetedEvent<HTMLInputElement>) => {
     const value = event.currentTarget.value
     setCutDepth(value)
     emit<SetDataHandler>('SET_DATA', { nodeIds, cutDepth: value })
   }, [nodeIds])
-  const icon = useMemo(() => {
-    switch (cutType) {
-      case 'inside': return <IconInside16 />
-      case 'outside': return <IconOutside16 />
-      case 'on-line': return <IconOnLine16 />
-      case 'pocket': return <IconPocket16 />
-      case 'guide': return <IconGuide16 />
-      default: return noIcon16
-    }
-  }, [cutType])
 
-  const options = cutType === 'Mixed'
-    ? cutType ? mixedCutTypeOptionsWithClear : mixedCutTypeOptions
-    : cutType ? cutTypeOptionsWithClear : cutTypeOptions
   return (
     <Row>
       {label && <Cell><Text>{label}</Text></Cell>}
       <Cell width={80}>
         <Textbox
           icon={<IconDepth16 />}
+          disabled={cutType === "guide"}
           placeholder="Depth"
-          value={cutDepth ?? ""}
+          value={(cutType !== "guide" && cutDepth) || ""}
           onChange={onCutDepthChange}
         />
       </Cell>
       <Cell width={96}>
-        <Dropdown
-          icon={icon}
-          placeholder="Cut type"
-          options={options}
-          value={cutType || null}
+        <CutTypeDropdown
+          shapeIsClosed={shapeIsClosed}
+          cutType={cutType ?? null}
           onChange={onCutTypeChange}
         />
       </Cell>

@@ -1,10 +1,17 @@
 import { emit, on, once, showUI } from '@create-figma-plugin/utilities'
 
-import { CloseHandler, CutType, PathData, PathSelection, SelectionChangeHandler, SerializedPath, SetDataHandler } from './types'
-import { assertCutType, not } from './utils'
+import { CloseHandler, PathNode, PathData, PathSelection, SelectionChangeHandler, SerializedNode, SetDataHandler, SerializedPath } from './types'
+import { assertCutType, not, shapeIsClosed } from './utils'
 
 export default function () {
   figma.on('selectionchange', sendSelectionChange)
+  figma.on('documentchange', changes => {
+    if (changes.documentChanges.some(change =>
+      change.type === 'PROPERTY_CHANGE' && figma.currentPage.selection.some(node => node.id === change.id)
+    )) {
+      sendSelectionChange()
+    }
+  })
 
   once<CloseHandler>('CLOSE', () => {
     figma.closePlugin()
@@ -61,7 +68,7 @@ function sendSelectionChange() {
   }
 }
 
-function getNodeData(node: BaseNode): PathData {
+function getPathData(node: BaseNode): PathData {
   const cutDepth = node.getPluginData('cutDepth')
   const cutType = node.getPluginData('cutType')
   if (cutType !== '') {
@@ -79,7 +86,7 @@ function isGroupLikeNode(node: BaseNode): node is BaseNode & ChildrenMixin {
     || node.type === 'INSTANCE'
 }
 
-function isExportableLeafNode(node: BaseNode): boolean {
+function isPathNode(node: BaseNode): node is PathNode {
   return node.type === 'BOOLEAN_OPERATION'
     || node.type === 'ELLIPSE'
     || node.type === 'LINE'
@@ -92,18 +99,18 @@ function isExportableLeafNode(node: BaseNode): boolean {
 
 function getPathSelection(selection: readonly BaseNode[]): PathSelection {
   const nodes: SerializedPath[] = []
-  const invalidNodes: SerializedPath[] = []
+  const invalidNodes: SerializedNode[] = []
   for (const node of selection) {
     if (hasLeafNodeParent(node)) {
       invalidNodes.push(serializeNode(node))
     }
-    else if (isExportableLeafNode(node)) {
-      nodes.push(serializeNode(node))
+    else if (isPathNode(node)) {
+      nodes.push(serializePath(node))
     }
     else if (isGroupLikeNode(node)) {
-      const validChildren = node.findAll(isExportableLeafNode)
-      const invalidChildren = node.findAll(not(isExportableLeafNode))
-      nodes.push(...validChildren.map(serializeNode))
+      const validChildren = node.findAll(isPathNode) as PathNode[]
+      const invalidChildren = node.findAll(not(isPathNode))
+      nodes.push(...validChildren.map(serializePath))
       invalidNodes.push(...invalidChildren.map(serializeNode))
     }
     else {
@@ -124,7 +131,7 @@ function getPathSelection(selection: readonly BaseNode[]): PathSelection {
 function hasLeafNodeParent(node: BaseNode) {
   let parent = node.parent
   while (parent !== null) {
-    if (isExportableLeafNode(parent)) {
+    if (isPathNode(parent)) {
       return true
     }
     parent = parent.parent
@@ -132,11 +139,18 @@ function hasLeafNodeParent(node: BaseNode) {
   return false
 }
 
-function serializeNode(node: BaseNode): SerializedPath {
+function serializePath(node: PathNode): SerializedPath {
+  return {
+    ...serializeNode(node),
+    ...getPathData(node),
+    isClosed: shapeIsClosed(node),
+  }
+}
+
+function serializeNode(node: BaseNode): SerializedNode {
   return {
     id: node.id,
     name: node.name,
     type: node.type,
-    ...getNodeData(node)
   }
 }

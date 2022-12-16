@@ -7,13 +7,13 @@ export interface CloseHandler extends EventHandler {
 
 export interface SetDataHandler extends EventHandler {
   name: 'SET_DATA'
-  handler: (data: PathData & { nodeIds: readonly string[] }) => void
+  handler: (data: SettablePathData & { nodeIds: readonly string[] }) => void
 }
 
 export interface PathSelection {
   kind: 'PATHS'
   nodes: readonly SerializedPath[]
-  invalidNodes: readonly SerializedPath[]
+  invalidNodes: readonly SerializedNode[]
 }
 
 export interface FrameSelection {
@@ -29,9 +29,19 @@ export type Selection =
 export type CutType =
   | 'inside'
   | 'outside'
-  | 'on-line'
+  | 'online'
   | 'pocket'
   | 'guide'
+
+export type PathNode =
+  | BooleanOperationNode
+  | EllipseNode
+  | LineNode
+  | PolygonNode
+  | RectangleNode
+  | StarNode
+  | TextNode
+  | VectorNode
 
 export interface FrameData {}
 
@@ -42,13 +52,22 @@ export interface SerializedFrame extends FrameData {
 
 export interface PathData {
   cutDepth?: string
-  cutType?: CutType | ''
+  cutType?: CutType
 }
 
-export interface SerializedPath extends PathData {
+export type SettablePathData = { 
+  [K in keyof PathData]: PathData[K] | ''
+}
+
+export interface SerializedNode {
   id: string
   name: string
   type: NodeType
+}
+
+export interface SerializedPath extends SerializedNode, PathData {
+  id: string
+  isClosed: boolean
 }
 
 export interface SelectionChangeHandler extends EventHandler {

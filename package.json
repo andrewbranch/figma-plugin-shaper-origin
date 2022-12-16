@@ -2,14 +2,17 @@
   "dependencies": {
     "@create-figma-plugin/ui": "^2.1.5",
     "@create-figma-plugin/utilities": "^2.1.5",
-    "preact": "^10"
+    "clipper-lib": "^6.4.2",
+    "preact": "^10",
+    "three": "^0.147.0"
   },
   "devDependencies": {
     "@create-figma-plugin/build": "^2.1.5",
     "@create-figma-plugin/tsconfig": "^2.1.5",
     "@figma/plugin-typings": "1.54.0",
+    "@types/three": "^0.146.0",
     "svgo": "^3.0.2",
-    "typescript": "^4"
+    "typescript": "^5.0.0-dev.20221215"
   },
   "scripts": {
     "build": "build-figma-plugin --typecheck --minify",
