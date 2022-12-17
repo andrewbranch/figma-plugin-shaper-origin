@@ -1,7 +1,6 @@
 import { emit, on, once, showUI } from '@create-figma-plugin/utilities'
-
-import { CloseHandler, PathNode, PathData, PathSelection, SelectionChangeHandler, SerializedNode, SetDataHandler, SerializedPath } from './types'
-import { assertCutType, not, shapeIsClosed } from './utils'
+import { CloseHandler, PathNode, SelectionChangeHandler, SetPathDataHandler, ExportDoneHandler, ExportHandler, PathData, SetFrameDataHandler } from './types'
+import { assertCutType, formatVectorPath, getFrameData, getPathSelection, hasPathNodeParent, isPathNode } from './utils'
 
 export default function () {
   figma.on('selectionchange', sendSelectionChange)
@@ -17,7 +16,7 @@ export default function () {
     figma.closePlugin()
   })
 
-  on<SetDataHandler>('SET_DATA', data => {
+  on<SetPathDataHandler>('SET_PATH_DATA', data => {
     for (const nodeId of data.nodeIds) {
       const node = figma.getNodeById(nodeId)
       if (node === null) {
@@ -27,12 +26,36 @@ export default function () {
         node.setPluginData('cutDepth', data.cutDepth.toString())
       }
       if (data.cutType !== undefined) {
-        if (data.cutType !== "") {
-          assertCutType(data.cutType)
-        }
         node.setPluginData('cutType', data.cutType)
       }
     }
+  })
+
+  on<SetFrameDataHandler>('SET_FRAME_DATA', data => {
+    const frame = figma.getNodeById(data.id)
+    if (frame === null) {
+      throw new Error('Frame not found')
+    }
+    if (frame.type !== 'FRAME') {
+      throw new Error('Node is not a frame')
+    }
+    if (data.defaultUnits !== undefined) {
+      frame.setPluginData('defaultUnits', data.defaultUnits)
+    }
+    if (data.width !== undefined) {
+      frame.setPluginData('width', data.width)
+    }
+  })
+
+  on<ExportHandler>('EXPORT', async data => {
+    const frame = figma.getNodeById(data.frameId)
+    if (frame === null) {
+      throw new Error('Frame not found')
+    }
+    if (frame.type !== 'FRAME') {
+      throw new Error('Node is not a frame')
+    }
+    emit<ExportDoneHandler>('EXPORT_DONE', await exportFrame(frame))
   })
 
   showUI({
@@ -57,7 +80,10 @@ function sendSelectionChange() {
       kind: 'FRAME',
       frame: {
         id: selection[0].id,
-        name: selection[0].name
+        name: selection[0].name,
+        pixelWidth: selection[0].width,
+        pixelHeight: selection[0].height,
+        ...getFrameData(selection[0])
       },
       paths: getPathSelection(selection[0].children)
     })
@@ -68,89 +94,109 @@ function sendSelectionChange() {
   }
 }
 
-function getPathData(node: BaseNode): PathData {
-  const cutDepth = node.getPluginData('cutDepth')
-  const cutType = node.getPluginData('cutType')
-  if (cutType !== '') {
-    assertCutType(cutType)
-  }
+function stageExport(frame: FrameNode) {
+  const stagingFrame = clearOrCreateStagingFrame(frame)
+  const paths = getTopLevelPathNodes(stagingFrame)
+  const outPaths: SceneNode[] = []
+  stagingFrame.fills = []
+  stagingFrame.strokes = []
+
+  paths.forEach(node => {
+    const cutType = node.getPluginData('cutType')
+
+    // Replace boolean operations with the vectors of their fills
+    if (node.type === 'BOOLEAN_OPERATION') {
+      const vector = figma.createVector()
+      vector.vectorPaths = node.fillGeometry.map(g => ({ ...g, data: formatVectorPath(g.data) }))
+      vector.x = node.x
+      vector.y = node.y
+      vector.rotation = node.rotation
+      vector.resize(node.width, node.height)
+      vector.name = node.name
+      vector.setPluginData('cutType', cutType)
+      vector.setPluginData('cutDepth', node.getPluginData('cutDepth'))
+      node.parent!.appendChild(vector)
+      node.remove()
+      node = vector
+    }
+
+    // Set stroke/fill for cut type
+    switch (cutType) {
+      case 'inside':
+        // black stroke white fill
+        node.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }]
+        node.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }]
+        break
+      case 'outside':
+        // black stroke black fill
+        node.strokes = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }]
+        node.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }]
+        break
+      case 'online':
+        // gray stroke
+        node.strokes = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 } }]
+        node.fills = []
+        break
+      case 'pocket':
+        // gray fill
+        node.strokes = []
+        node.fills = [{ type: 'SOLID', color: { r: 0.5, g: 0.5, b: 0.5 } }]
+        break
+      case 'guide':
+        // #0068FF stroke
+        node.strokes = [{ type: 'SOLID', color: { r: 0, g: 0.41, b: 1 } }]
+        node.fills = []
+        break
+    }
+
+    outPaths.push(node)
+  })
+
+  return { stagingFrame, paths: outPaths }
+}
+
+function getTopLevelPathNodes(frame: FrameNode) {
+  return frame.findAll(n => isPathNode(n) && !hasPathNodeParent(n)) as PathNode[]
+}
+
+async function exportFrame(frame: FrameNode): Promise<{ svg: Uint8Array, pathData: Record<string, PathData> }> {
+  const { stagingFrame, paths } = stageExport(frame)
+  const svg = await stagingFrame.exportAsync({ format: 'SVG', svgIdAttribute: true })
   return {
-    cutDepth: !cutDepth ? undefined : cutDepth,
-    cutType: !cutType ? undefined : cutType
+    svg,
+    pathData: paths.reduce((acc, node) => ({
+      ...acc,
+      [getNodeId(node, acc)]: {
+        cutType: node.getPluginData('cutType'),
+        cutDepth: node.getPluginData('cutDepth')
+      }
+    }), {})
   }
-}
 
-function isGroupLikeNode(node: BaseNode): node is BaseNode & ChildrenMixin {
-  return node.type === 'COMPONENT'
-    || node.type === 'GROUP'
-    || node.type === 'INSTANCE'
-}
-
-function isPathNode(node: BaseNode): node is PathNode {
-  return node.type === 'BOOLEAN_OPERATION'
-    || node.type === 'ELLIPSE'
-    || node.type === 'LINE'
-    || node.type === 'POLYGON'
-    || node.type === 'RECTANGLE'
-    || node.type === 'STAR'
-    || node.type === 'TEXT'
-    || node.type === 'VECTOR'
-}
-
-function getPathSelection(selection: readonly BaseNode[]): PathSelection {
-  const nodes: SerializedPath[] = []
-  const invalidNodes: SerializedNode[] = []
-  for (const node of selection) {
-    if (hasLeafNodeParent(node)) {
-      invalidNodes.push(serializeNode(node))
-    }
-    else if (isPathNode(node)) {
-      nodes.push(serializePath(node))
-    }
-    else if (isGroupLikeNode(node)) {
-      const validChildren = node.findAll(isPathNode) as PathNode[]
-      const invalidChildren = node.findAll(not(isPathNode))
-      nodes.push(...validChildren.map(serializePath))
-      invalidNodes.push(...invalidChildren.map(serializeNode))
-    }
-    else {
-      invalidNodes.push({
-        id: node.id,
-        name: node.name,
-        type: node.type
-      })
+  function getNodeId(node: BaseNode, nodes: Record<string, unknown>) {
+    return getName(node.name, nodes)
+    function getName(name: string, nodes: Record<string, unknown>, counter = 2): string {
+      return nodes[name] ? getName(`${name}_${counter}`, nodes, counter + 1) : name
     }
   }
-  return {
-    kind: 'PATHS',
-    nodes,
-    invalidNodes
-  }
 }
 
-function hasLeafNodeParent(node: BaseNode) {
-  let parent = node.parent
-  while (parent !== null) {
-    if (isPathNode(parent)) {
-      return true
-    }
-    parent = parent.parent
+function getOrCreateStagingPage() {
+  let page = figma.root.children.find(page => page.getPluginData('stagingPage'))
+  if (!page) {
+    page = figma.createPage()
+    page.name = "Shaper Origin Export Staging"
+    page.setPluginData('stagingPage', 'true')
   }
-  return false
+  return page
 }
 
-function serializePath(node: PathNode): SerializedPath {
-  return {
-    ...serializeNode(node),
-    ...getPathData(node),
-    isClosed: shapeIsClosed(node),
-  }
-}
+function clearOrCreateStagingFrame(sourceFrame: FrameNode) {
+  const page = getOrCreateStagingPage()
+  page.children.find(node => node.type === 'FRAME' && node.name === sourceFrame.name)
+    ?.remove()
 
-function serializeNode(node: BaseNode): SerializedNode {
-  return {
-    id: node.id,
-    name: node.name,
-    type: node.type,
-  }
+  const frame = sourceFrame.clone()
+  page.appendChild(frame)
+  return frame
 }

@@ -1,9 +1,9 @@
 import { Dropdown, DropdownOption } from "@create-figma-plugin/ui";
-import { CutType } from "./types";
+import { CutType } from "../types";
 import { useCallback, useMemo } from "preact/hooks";
 import { IconInside16, IconOutside16, IconOnLine16, IconPocket16, IconGuide16 } from "./icons";
 import { JSX, h } from "preact";
-import { assertCutType } from "./utils";
+import { assertCutType } from "../utils";
 
 type DropdownOptionValue = CutType | "" | "Mixed"
 

@@ -5,9 +5,24 @@ export interface CloseHandler extends EventHandler {
   handler: () => void
 }
 
-export interface SetDataHandler extends EventHandler {
-  name: 'SET_DATA'
+export interface SetPathDataHandler extends EventHandler {
+  name: 'SET_PATH_DATA'
   handler: (data: SettablePathData & { nodeIds: readonly string[] }) => void
+}
+
+export interface SetFrameDataHandler extends EventHandler {
+  name: 'SET_FRAME_DATA'
+  handler: (data: SettableFrameData & { id: string }) => void
+}
+
+export interface ExportHandler extends EventHandler {
+  name: 'EXPORT'
+  handler: (data: { frameId: string }) => void
+}
+
+export interface ExportDoneHandler extends EventHandler {
+  name: 'EXPORT_DONE'
+  handler: (data: { svg: Uint8Array, pathData: Record<string, PathData> }) => void
 }
 
 export interface PathSelection {
@@ -43,20 +58,36 @@ export type PathNode =
   | TextNode
   | VectorNode
 
-export interface FrameData {}
+export type RealUnit = 'in' | 'mm'
+export type Unit = RealUnit | 'px'
+export type RealDimensionString = `${number} ${RealUnit}`
+
+export interface FrameData {
+  defaultUnits: RealUnit
+  width?: RealDimensionString
+}
+
+export type SettableFrameData = {
+  [K in keyof FrameData]?: undefined extends FrameData[K]
+    ? FrameData[K] | ''
+    : FrameData[K]
+}
 
 export interface SerializedFrame extends FrameData {
   id: string
   name: string
+  pixelWidth: number
+  pixelHeight: number
 }
 
 export interface PathData {
-  cutDepth?: string
+  cutDepth?: RealDimensionString
   cutType?: CutType
+  bitDiameter?: RealDimensionString
 }
 
 export type SettablePathData = { 
-  [K in keyof PathData]: PathData[K] | ''
+  [K in keyof PathData]?: PathData[K] | ''
 }
 
 export interface SerializedNode {
@@ -68,6 +99,7 @@ export interface SerializedNode {
 export interface SerializedPath extends SerializedNode, PathData {
   id: string
   isClosed: boolean
+  defaultUnits: RealUnit
 }
 
 export interface SelectionChangeHandler extends EventHandler {

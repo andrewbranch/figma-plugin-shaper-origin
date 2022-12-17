@@ -3,7 +3,9 @@
     "@create-figma-plugin/ui": "^2.1.5",
     "@create-figma-plugin/utilities": "^2.1.5",
     "clipper-lib": "^6.4.2",
+    "file-saver": "^2.0.5",
     "preact": "^10",
+    "svgo": "^3.0.2",
     "three": "^0.147.0"
   },
   "devDependencies": {
@@ -11,7 +13,6 @@
     "@create-figma-plugin/tsconfig": "^2.1.5",
     "@figma/plugin-typings": "1.54.0",
     "@types/three": "^0.146.0",
-    "svgo": "^3.0.2",
     "typescript": "^5.0.0-dev.20221215"
   },
   "scripts": {
@@ -26,6 +27,13 @@
     "id": "shaper-origin",
     "name": "Shaper Origin Export",
     "main": "src/main.ts",
-    "ui": "src/ui.tsx"
+    "ui": "src/ui/Plugin.tsx"
+  },
+  "overrides": {
+    "typescript": "$typescript"
+  },
+  "volta": {
+    "node": "18.12.1",
+    "npm": "9.2.0"
   }
 }

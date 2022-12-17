@@ -1,0 +1,98 @@
+<html>
+  <head>
+    <title>Starter Offset</title>
+    <script src="clipper.js"></script>
+  </head>
+  <body>
+    <div id="svgcontainer"></div>
+    <script>
+      var paths = [
+        [{"X":62,"Y":0},{"X":71.47892761230469,"Y":2.1706490516662598},{"X":74,"Y":11.514606475830078},{"X":74,"Y":21.514606475830078},{"X":74,"Y":31.514606475830078},{"X":74,"Y":41.51460647583008},{"X":74,"Y":51.51460647583008},{"X":74,"Y":61.51460266113281},{"X":74,"Y":71.51460266113281},{"X":74,"Y":81.51460266113281},{"X":74,"Y":91.51460266113281},{"X":74,"Y":101.51460266113281},{"X":74,"Y":111.51460266113281},{"X":74,"Y":121.51459503173828},{"X":74,"Y":131.5146026611328},{"X":74,"Y":141.5146026611328},{"X":74,"Y":151.5146026611328},{"X":74,"Y":161.5146026611328},{"X":74,"Y":171.5146026611328},{"X":74,"Y":181.5146026611328},{"X":74,"Y":191.5146026611328},{"X":74,"Y":201.5146026611328},{"X":74,"Y":211.5146026611328},{"X":74,"Y":221.5146026611328},{"X":74,"Y":231.51461791992188},{"X":74,"Y":241.5146026611328},{"X":74,"Y":251.51461791992188},{"X":74,"Y":261.51458740234375},{"X":74,"Y":271.5146179199219},{"X":74,"Y":281.5146179199219},{"X":74,"Y":291.5146179199219},{"X":74,"Y":301.5146179199219},{"X":74,"Y":311.5146179199219},{"X":74,"Y":321.5146179199219},{"X":74,"Y":331.5146179199219},{"X":74,"Y":341.5146179199219},{"X":74,"Y":351.5146179199219},{"X":74,"Y":361.5146179199219},{"X":74,"Y":371.5146179199219},{"X":74,"Y":381.5146179199219},{"X":74,"Y":391.5146179199219},{"X":74,"Y":401.5146179199219},{"X":74,"Y":411.5146179199219},{"X":74,"Y":421.5146179199219},{"X":73.98490142822266,"Y":431.4912414550781},{"X":67.92471313476562,"Y":438.7649841308594},{"X":58.13165283203125,"Y":438.0025634765625},{"X":54,"Y":429.4561767578125},{"X":54,"Y":419.4561767578125},{"X":54,"Y":409.4561767578125},{"X":54,"Y":399.4561767578125},{"X":54,"Y":389.4561767578125},{"X":54,"Y":379.4561767578125},{"X":54,"Y":369.4561767578125},{"X":54,"Y":359.4561767578125},{"X":54,"Y":349.4561767578125},{"X":54,"Y":339.4561767578125},{"X":54,"Y":329.4561767578125},{"X":54,"Y":319.4561767578125},{"X":54,"Y":309.4561767578125},{"X":54,"Y":299.4561767578125},{"X":54,"Y":289.4561767578125},{"X":54,"Y":279.4561767578125},{"X":54,"Y":269.4561767578125},{"X":54,"Y":259.4561767578125},{"X":54,"Y":249.4561767578125},{"X":54,"Y":239.4561767578125},{"X":54,"Y":229.4561767578125},{"X":54,"Y":219.4561767578125},{"X":54,"Y":209.45616149902344},{"X":54,"Y":199.4561767578125},{"X":54,"Y":189.45616149902344},{"X":54,"Y":179.4561767578125},{"X":54,"Y":169.4561767578125},{"X":54,"Y":159.4561767578125},{"X":54,"Y":149.4561767578125},{"X":54,"Y":139.4561767578125},{"X":54,"Y":129.4561767578125},{"X":54,"Y":119.4561767578125},{"X":54,"Y":109.4561767578125},{"X":54,"Y":99.4561767578125},{"X":54,"Y":89.4561767578125},{"X":54,"Y":79.4561767578125},{"X":54,"Y":69.4561767578125},{"X":54,"Y":59.4561767578125},{"X":54,"Y":49.4561767578125},{"X":54,"Y":39.4561767578125},{"X":54,"Y":29.4561767578125},{"X":54,"Y":19.4561767578125},{"X":54,"Y":9.4561767578125},{"X":58.208580017089844,"Y":0.9554893970489502}],
+      ];
+      var scale = 100;
+
+      draw(paths, 'online', 5);
+
+      function draw(paths, cutType, bitRadius) {
+        paths = paths.slice()
+        ClipperLib.JS.ScaleUpPaths(paths, scale);
+        let centerlinePaths = paths;
+
+        if (cutType === 'outside' || cutType === 'inside') {
+          centerlinePaths = new ClipperLib.Paths();
+          const offsetCenterline = new ClipperLib.ClipperOffset(2, 0.25);
+          offsetCenterline.AddPaths(
+            paths,
+            ClipperLib.JoinType.jtRound,
+            ClipperLib.EndType.etClosedPolygon
+          );
+
+          offsetCenterline.Execute(centerlinePaths, bitRadius * scale * (cutType === 'outside' ? 1 : -1));
+        }
+        // Possibly ClipperLib.Clipper.SimplifyPolygons() here
+        // Possibly ClipperLib.Clipper.CleanPolygons() here
+        var outer = new ClipperLib.ClipperOffset(2, 0.25);
+
+        // ClipperLib.EndType = {etOpenSquare: 0, etOpenRound: 1, etOpenButt: 2, etClosedPolygon: 3, etClosedLine : 4 };
+        outer.AddPaths(
+          centerlinePaths,
+          ClipperLib.JoinType.jtRound,
+          ClipperLib.EndType.etClosedPolygon
+        );
+        var outerPaths = new ClipperLib.Paths();
+        outer.Execute(outerPaths, -bitRadius * scale);
+
+        var inner = new ClipperLib.ClipperOffset(2, 0.25);
+        inner.AddPaths(
+          centerlinePaths,
+          ClipperLib.JoinType.jtRound,
+          ClipperLib.EndType.etClosedPolygon
+        );
+        var innerPaths = new ClipperLib.Paths();
+        inner.Execute(innerPaths, bitRadius * scale);
+
+        //console.log(JSON.stringify(offsetted_paths));
+
+        // Scale down coordinates and draw ...
+        var svg =
+          '<svg style="background-color:#dddddd" width="500" height="500">';
+        svg +=
+          '<path fill="none" stroke="black" stroke-width="1" d="' +
+          paths2string(paths, scale) +
+          '"/>';
+          // svg +=
+          // '<path fill="none" stroke="#aaa" stroke-width="0.1" d="' +
+          // paths2string(centerlinePaths, scale) +
+          // '"/>';
+        svg +=
+          '<path fill="rgba(255, 0, 0, 0.5)" fill-rule="evenodd" stroke="none" stroke-width="0.1" d="' +
+          paths2string([...outerPaths, ...innerPaths], scale) +
+          '"/>';
+        // svg += '<path fill="none" stroke="black" stroke-width="2" d="' +
+        //   paths2string(innerPaths, scale) +
+        //   '"/>';
+        svg += "</svg>";
+        document.getElementById("svgcontainer").innerHTML = svg;
+      }
+
+      // Converts Paths to SVG path string
+      // and scales down the coordinates
+      function paths2string(paths, scale) {
+        var svgpath = "",
+          i,
+          j;
+        if (!scale) scale = 1;
+        for (i = 0; i < paths.length; i++) {
+          for (j = 0; j < paths[i].length; j++) {
+            if (!j) svgpath += "M";
+            else svgpath += "L";
+            svgpath += paths[i][j].X / scale + ", " + paths[i][j].Y / scale;
+          }
+          svgpath += "Z";
+        }
+        if (svgpath == "") svgpath = "M0,0";
+        return svgpath;
+      }
+    </script>
+  </body>
+</html>
