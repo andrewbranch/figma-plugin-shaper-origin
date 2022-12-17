@@ -5,6 +5,7 @@
     "clipper-lib": "^6.4.2",
     "file-saver": "^2.0.5",
     "preact": "^10",
+    "prettier": "^2.8.1",
     "svgo": "^3.0.2",
     "three": "^0.147.0"
   },
@@ -18,7 +19,8 @@
   "scripts": {
     "build": "build-figma-plugin --typecheck --minify",
     "watch": "build-figma-plugin --typecheck --watch",
-    "svgo": "svgo -f src/images -o src/images"
+    "svgo": "svgo -f src/images -o src/images",
+    "format": "prettier --write src/**/*.{ts,tsx,css}"
   },
   "figma-plugin": {
     "editorType": [

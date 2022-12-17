@@ -6,5 +6,7 @@
       ],
       "url": "https://yuanqing.github.io/create-figma-plugin/figma-plugin.json"
     }
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

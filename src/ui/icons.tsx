@@ -11,12 +11,12 @@ import pocket from "./images/pocket.svg";
 // but I'm too lazy to figure out how to customize
 // the build.
 function getPathStrings(dataURL: string): string[] {
-  const base64 = dataURL.slice('data:image/svg+xml;base64,'.length);
+  const base64 = dataURL.slice("data:image/svg+xml;base64,".length);
   const svg = atob(base64);
   const regex = /<path d="([^"]+)"/g;
   const matches = [];
   let match;
-  while (match = regex.exec(svg)) {
+  while ((match = regex.exec(svg))) {
     matches.push(match[1]);
   }
   return matches;
@@ -32,7 +32,9 @@ function createIcon(paths: string[], size: number) {
         style={{ height: size, width: size }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        {paths.map(path => <path clip-rule="evenodd" d={path} fill-rule="evenodd" />)}
+        {paths.map((path) => (
+          <path clip-rule="evenodd" d={path} fill-rule="evenodd" />
+        ))}
       </svg>
     );
   };
