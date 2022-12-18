@@ -1,7 +1,8 @@
 import { Textbox, TextboxProps } from "@create-figma-plugin/ui";
 import { h } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import { coerceDimension, parseRealDimensionString } from "../dimensions";
+import { isRealDimensionString, toRealDimensionString } from "../dimensions";
+import { tryEvaluate } from "../expressions";
 import { RealDimensionString, RealUnit } from "../types";
 
 interface DimensionTextboxProps extends Partial<TextboxProps<string>> {
@@ -28,26 +29,28 @@ export function DimensionTextbox(props: DimensionTextboxProps) {
   const handleValueInput = useCallback(
     (value: string) => {
       setValue((prevValue) => {
-        if (value !== prevValue && handleValidateOnBlur(value) === value) {
+        if (value !== prevValue && isRealDimensionString(value, ensurePositive)) {
           onValidInput(value as RealDimensionString);
         }
         return value;
       });
     },
-    [onValidInput]
+    [onValidInput, ensurePositive]
   );
   const handleValidateOnBlur = useCallback(
     (value: string) => {
       if (value.trim() === "") {
         return "";
       }
-      const coerced = coerceDimension(value, !!ensurePositive, defaultUnits);
-      const scalar = coerced && parseRealDimensionString(coerced).scalar;
-      if (ensurePositive && scalar === 0) {
+      const evaluated = tryEvaluate(value);
+      if (!evaluated || ensurePositive && evaluated.scalar < 0) {
+        return false;
+      }
+      if (ensurePositive && evaluated.scalar === 0) {
         return "";
       }
 
-      return coerced ?? false;
+      return toRealDimensionString(evaluated.unit ? evaluated : { ...evaluated, unit: defaultUnits });
     },
     [defaultUnits, ensurePositive]
   );

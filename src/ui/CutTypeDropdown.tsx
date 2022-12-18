@@ -142,15 +142,15 @@ export function CutTypeDropdown(props: CutTypeDropdownProps) {
           ? mixedClosedCutTypeOptionsWithClear
           : mixedOpenCutTypeOptionsWithClear
         : shapeIsClosed
-          ? mixedClosedCutTypeOptions
-          : mixedOpenCutTypeOptions
+        ? mixedClosedCutTypeOptions
+        : mixedOpenCutTypeOptions
       : cutType
-        ? shapeIsClosed
-          ? closedCutTypeOptionsWithClear
-          : openCutTypeOptionsWithClear
-        : shapeIsClosed
-          ? closedCutTypeOptions
-          : openCutTypeOptions;
+      ? shapeIsClosed
+        ? closedCutTypeOptionsWithClear
+        : openCutTypeOptionsWithClear
+      : shapeIsClosed
+      ? closedCutTypeOptions
+      : openCutTypeOptions;
 
   return (
     <Dropdown
