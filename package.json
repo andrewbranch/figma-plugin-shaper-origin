@@ -12,15 +12,19 @@
   "devDependencies": {
     "@create-figma-plugin/build": "^2.1.5",
     "@create-figma-plugin/tsconfig": "^2.1.5",
+    "@esbuild-kit/cjs-loader": "^2.4.1",
     "@figma/plugin-typings": "1.54.0",
+    "@types/node": "^18.11.17",
     "@types/three": "^0.146.0",
+    "tsm": "^2.3.0",
     "typescript": "^5.0.0-dev.20221215"
   },
   "scripts": {
     "build": "build-figma-plugin --typecheck --minify",
     "watch": "build-figma-plugin --typecheck --watch",
     "svgo": "svgo -f src/images -o src/images",
-    "format": "prettier --write src/**/*.{ts,tsx,css}"
+    "format": "prettier --write src/**/*.{ts,tsx,css}",
+    "test": "node -r @esbuild-kit/cjs-loader --test test/*.ts"
   },
   "figma-plugin": {
     "editorType": [

@@ -137,8 +137,11 @@ export function parseMathExpression(input: string) {
           expression,
         };
       }
+      return expression.kind === NodeKind.UnitExpression
+        ? expression
+        : { ...expression, unit };
     }
-    throw new Error(`Unexpected token: ${token().type}`);
+    throw new Error(`Unexpected token: ${token()?.type}`);
   }
 
   function parseFraction(): BinaryOperation {
