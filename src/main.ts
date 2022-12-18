@@ -1,6 +1,6 @@
 import { emit, on, once, showUI } from '@create-figma-plugin/utilities'
-import { CloseHandler, PathNode, SelectionChangeHandler, SetPathDataHandler, ExportDoneHandler, ExportHandler, PathData, SetFrameDataHandler } from './types'
-import { assertCutType, formatVectorPath, getFrameData, getPathSelection, hasPathNodeParent, isPathNode } from './utils'
+import { CloseHandler, ExportDoneHandler, ExportHandler, PathData, PathNode, SelectionChangeHandler, SetFrameDataHandler, SetPathDataHandler } from './types'
+import { formatVectorPath, getFrameData, getPathSelection, hasPathNodeParent, isPathNode } from './utils'
 
 export default function () {
   figma.on('selectionchange', sendSelectionChange)

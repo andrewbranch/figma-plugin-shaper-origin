@@ -1,5 +1,5 @@
-import { h } from "preact";
 import { Props } from "@create-figma-plugin/ui";
+import { h } from "preact";
 import depth from "./images/depth.svg";
 import guide from "./images/guide.svg";
 import inside from "./images/inside.svg";

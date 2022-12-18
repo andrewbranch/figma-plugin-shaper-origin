@@ -6,9 +6,9 @@ import {
   VerticalSpace,
 } from "@create-figma-plugin/ui";
 import { Fragment, h } from "preact";
-import { Table } from "./Table";
 import { PathSelection } from "../types";
 import { CutControls } from "./CutControlsProps";
+import { Table } from "./Table";
 
 interface PathSelectionEditorProps {
   selection: PathSelection;

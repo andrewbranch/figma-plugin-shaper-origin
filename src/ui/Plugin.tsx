@@ -1,12 +1,12 @@
-import { Container, render, VerticalSpace } from "@create-figma-plugin/ui";
+import "!./styles.css";
+import { Container, VerticalSpace, render } from "@create-figma-plugin/ui";
 import { on } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import "!./styles.css";
 
 import { Selection, SelectionChangeHandler } from "../types";
-import { PathSelectionEditor } from "./PathSelectionEditor";
 import { FrameSelectionEditor } from "./FrameSelectionEditor";
+import { PathSelectionEditor } from "./PathSelectionEditor";
 
 function Plugin() {
   const [selection, setSelection] = useState<Selection>();

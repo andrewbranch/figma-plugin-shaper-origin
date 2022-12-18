@@ -11,19 +11,8 @@ import {
   VerticalSpace,
 } from "@create-figma-plugin/ui";
 import { emit, on } from "@create-figma-plugin/utilities";
-import { Fragment, h, JSX } from "preact";
+import { Fragment, JSX, h } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { Table } from "./Table";
-import {
-  FrameSelection,
-  ExportDoneHandler,
-  ExportHandler,
-  RealUnit,
-  SetFrameDataHandler,
-  RealDimensionString,
-} from "../types";
-import { getCutSVG } from "./preview/main";
-import { DimensionTextbox } from "./DimensionTextbox";
 import {
   assertRealUnit,
   div,
@@ -32,7 +21,18 @@ import {
   scalar,
   toRealDimensionString,
 } from "../dimensions";
+import {
+  ExportDoneHandler,
+  ExportHandler,
+  FrameSelection,
+  RealDimensionString,
+  RealUnit,
+  SetFrameDataHandler,
+} from "../types";
 import { CutControls } from "./CutControlsProps";
+import { DimensionTextbox } from "./DimensionTextbox";
+import { Table } from "./Table";
+import { getCutSVG } from "./preview/main";
 
 const unitOptions: DropdownOption<RealUnit>[] = [
   { text: "Default units", value: "" as never, disabled: true },

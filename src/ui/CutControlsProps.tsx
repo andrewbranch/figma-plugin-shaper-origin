@@ -2,16 +2,16 @@ import { Text } from "@create-figma-plugin/ui";
 import { emit } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useCallback, useState } from "preact/hooks";
-import { Cell, Row } from "./Table";
 import {
   CutType,
-  SetPathDataHandler,
-  RealUnit,
   RealDimensionString,
+  RealUnit,
+  SetPathDataHandler,
 } from "../types";
-import { IconDepth16 } from "./icons";
 import { CutTypeDropdown } from "./CutTypeDropdown";
 import { DimensionTextbox } from "./DimensionTextbox";
+import { Cell, Row } from "./Table";
+import { IconDepth16 } from "./icons";
 
 interface CutControlsProps {
   nodeIds: readonly string[];

@@ -37,7 +37,7 @@ export interface FrameSelection {
   paths: PathSelection
 }
 
-export type Selection = 
+export type Selection =
   | PathSelection
   | FrameSelection
 
@@ -69,8 +69,8 @@ export interface FrameData {
 
 export type SettableFrameData = {
   [K in keyof FrameData]?: undefined extends FrameData[K]
-    ? FrameData[K] | ''
-    : FrameData[K]
+  ? FrameData[K] | ''
+  : FrameData[K]
 }
 
 export interface SerializedFrame extends FrameData {
@@ -86,7 +86,7 @@ export interface PathData {
   bitDiameter?: RealDimensionString
 }
 
-export type SettablePathData = { 
+export type SettablePathData = {
   [K in keyof PathData]?: PathData[K] | ''
 }
 

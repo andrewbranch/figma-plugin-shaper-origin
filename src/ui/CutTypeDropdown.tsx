@@ -1,15 +1,15 @@
 import { Dropdown, DropdownOption } from "@create-figma-plugin/ui";
-import { CutType } from "../types";
-import { useCallback, useMemo } from "preact/hooks";
-import {
-  IconInside16,
-  IconOutside16,
-  IconOnLine16,
-  IconPocket16,
-  IconGuide16,
-} from "./icons";
 import { JSX, h } from "preact";
+import { useCallback, useMemo } from "preact/hooks";
+import { CutType } from "../types";
 import { assertCutType } from "../utils";
+import {
+  IconGuide16,
+  IconInside16,
+  IconOnLine16,
+  IconOutside16,
+  IconPocket16,
+} from "./icons";
 
 type DropdownOptionValue = CutType | "" | "Mixed";
 
@@ -142,15 +142,15 @@ export function CutTypeDropdown(props: CutTypeDropdownProps) {
           ? mixedClosedCutTypeOptionsWithClear
           : mixedOpenCutTypeOptionsWithClear
         : shapeIsClosed
-        ? mixedClosedCutTypeOptions
-        : mixedOpenCutTypeOptions
+          ? mixedClosedCutTypeOptions
+          : mixedOpenCutTypeOptions
       : cutType
-      ? shapeIsClosed
-        ? closedCutTypeOptionsWithClear
-        : openCutTypeOptionsWithClear
-      : shapeIsClosed
-      ? closedCutTypeOptions
-      : openCutTypeOptions;
+        ? shapeIsClosed
+          ? closedCutTypeOptionsWithClear
+          : openCutTypeOptionsWithClear
+        : shapeIsClosed
+          ? closedCutTypeOptions
+          : openCutTypeOptions;
 
   return (
     <Dropdown

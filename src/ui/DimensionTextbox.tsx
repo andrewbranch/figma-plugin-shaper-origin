@@ -1,12 +1,8 @@
-import { h } from "preact";
 import { Textbox, TextboxProps } from "@create-figma-plugin/ui";
-import { RealDimensionString, RealUnit } from "../types";
+import { h } from "preact";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import {
-  coerceDimension,
-  isDimension,
-  parseRealDimensionString,
-} from "../dimensions";
+import { coerceDimension, parseRealDimensionString } from "../dimensions";
+import { RealDimensionString, RealUnit } from "../types";
 
 interface DimensionTextboxProps extends Partial<TextboxProps<string>> {
   initialValue?: RealDimensionString | "Mixed";
