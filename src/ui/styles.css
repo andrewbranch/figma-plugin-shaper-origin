@@ -2,3 +2,6 @@ table {
   font-size: inherit;
   line-height: inherit;
 }
+#create-figma-plugin {
+  height: 100%;
+}

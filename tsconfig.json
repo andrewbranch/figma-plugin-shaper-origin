@@ -1,10 +1,15 @@
 {
   "extends": "@create-figma-plugin/tsconfig",
   "compilerOptions": {
-    "typeRoots": ["node_modules/@figma", "node_modules/@types"],
+    "typeRoots": [
+      "node_modules/@figma"
+    ],
     "checkJs": true,
     "maxNodeModuleJsDepth": 1,
-    "moduleResolution": "bundler"
+    "moduleResolution": "node"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
 }

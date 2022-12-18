@@ -1,5 +1,6 @@
 import {
   Bold,
+  Container,
   Divider,
   Muted,
   Text,
@@ -28,7 +29,8 @@ export function PathSelectionEditor(props: PathSelectionEditorProps) {
   const shapeIsClosed = selection.nodes.every((node) => node.isClosed);
   const defaultUnits = selection.nodes[0]?.defaultUnits ?? "in";
   return (
-    <Fragment>
+    <Container space="small">
+      <VerticalSpace space="medium" />
       {selection.nodes.length ? (
         <Fragment>
           {selection.nodes.length === 1 ? (
@@ -40,7 +42,7 @@ export function PathSelectionEditor(props: PathSelectionEditorProps) {
               <Bold>{selection.nodes.length} paths</Bold>
             </Text>
           )}
-          <VerticalSpace space="medium" />
+          <VerticalSpace space="small" />
           <Table>
             <CutControls
               shapeIsClosed={shapeIsClosed}
@@ -56,9 +58,9 @@ export function PathSelectionEditor(props: PathSelectionEditorProps) {
         <Fragment>
           {selection.nodes.length ? (
             <Fragment>
-              <VerticalSpace space="medium" />
+              <VerticalSpace space="small" />
               <Divider />
-              <VerticalSpace space="medium" />
+              <VerticalSpace space="small" />
             </Fragment>
           ) : null}
           <Text>
@@ -72,6 +74,7 @@ export function PathSelectionEditor(props: PathSelectionEditorProps) {
           </Text>
         </Fragment>
       )}
-    </Fragment>
+      <VerticalSpace space="small" />
+    </Container>
   );
 }

@@ -1,6 +1,6 @@
 import "!./styles.css";
-import { Container, VerticalSpace, render } from "@create-figma-plugin/ui";
-import { on } from "@create-figma-plugin/utilities";
+import { render, useWindowResize } from "@create-figma-plugin/ui";
+import { emit, on } from "@create-figma-plugin/utilities";
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
@@ -16,16 +16,21 @@ function Plugin() {
     });
   }, []);
 
-  return (
-    <Container space="medium">
-      <VerticalSpace space="large" />
-      {selection?.kind === "PATHS" ? (
-        <PathSelectionEditor selection={selection} />
-      ) : selection?.kind === "FRAME" ? (
-        <FrameSelectionEditor selection={selection} />
-      ) : null}
-    </Container>
+  useWindowResize(
+    (size) => {
+      emit("RESIZE_WINDOW", size);
+    },
+    {
+      minWidth: 320,
+      minHeight: 240,
+    }
   );
+
+  return selection?.kind === "PATHS" ? (
+    <PathSelectionEditor selection={selection} />
+  ) : selection?.kind === "FRAME" ? (
+    <FrameSelectionEditor selection={selection} />
+  ) : null;
 }
 
 export default render(Plugin);
