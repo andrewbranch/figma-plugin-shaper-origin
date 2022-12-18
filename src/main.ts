@@ -1,4 +1,4 @@
-import { emit, on, once, showUI } from "@create-figma-plugin/utilities";
+import { emit, on, showUI } from "@create-figma-plugin/utilities";
 import {
   mul,
   parseRealDimensionString,
@@ -6,9 +6,9 @@ import {
   toRealDimensionString,
 } from "./dimensions";
 import {
-  CloseHandler,
   ExportDoneHandler,
   ExportHandler,
+  ExportReadySVG,
   PathNode,
   SelectionChangeHandler,
   SetFrameDataHandler,
@@ -23,6 +23,11 @@ import {
 } from "./utils";
 
 export default function () {
+  const defaultWindowSize = {
+    height: 420,
+    width: 320,
+  };
+
   figma.on("selectionchange", sendSelectionChange);
   figma.on("documentchange", (changes) => {
     if (
@@ -36,8 +41,9 @@ export default function () {
     }
   });
 
-  once<CloseHandler>("CLOSE", () => {
-    figma.closePlugin();
+  on("CLOSE_PREVIEW", () => {
+    showUI(defaultWindowSize);
+    sendSelectionChange();
   });
 
   on<SetPathDataHandler>("SET_PATH_DATA", (data) => {
@@ -79,7 +85,18 @@ export default function () {
     if (frame.type !== "FRAME") {
       throw new Error("Node is not a frame");
     }
-    emit<ExportDoneHandler>("EXPORT_DONE", await exportFrame(frame));
+
+    const exported = await exportFrame(frame);
+    if (data.preview) {
+      showPreviewWindow(
+        exported,
+        frame.name,
+        frame.width + 80,
+        frame.height + 100
+      );
+    } else {
+      emit<ExportDoneHandler>("EXPORT_DONE", exported);
+    }
   });
 
   on("RESIZE_WINDOW", (windowSize: { width: number; height: number }) => {
@@ -87,12 +104,30 @@ export default function () {
     figma.ui.resize(width, height);
   });
 
-  showUI({
-    height: 420,
-    width: 320,
-  });
+  showUI(defaultWindowSize);
 
   sendSelectionChange();
+}
+
+function showPreviewWindow(
+  svg: ExportReadySVG,
+  title: string,
+  width: number,
+  height: number
+) {
+  showUI(
+    {
+      width,
+      height,
+      title,
+    },
+    {
+      preview: {
+        ...svg,
+        svg: [...svg.svg],
+      },
+    }
+  );
 }
 
 function sendSelectionChange() {
@@ -191,7 +226,7 @@ function getTopLevelPathNodes(frame: FrameNode) {
   ) as PathNode[];
 }
 
-async function exportFrame(frame: FrameNode) {
+async function exportFrame(frame: FrameNode): Promise<ExportReadySVG> {
   const { stagingFrame, paths } = stageExport(frame);
   const svg = await stagingFrame.exportAsync({
     format: "SVG",

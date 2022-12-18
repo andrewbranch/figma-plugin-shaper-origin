@@ -1,6 +1,7 @@
 {
   "extends": "@create-figma-plugin/tsconfig",
   "compilerOptions": {
+    "target": "esnext",
     "typeRoots": [
       "node_modules/@figma"
     ],

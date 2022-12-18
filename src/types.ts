@@ -17,18 +17,20 @@ export interface SetFrameDataHandler extends EventHandler {
 
 export interface ExportHandler extends EventHandler {
   name: "EXPORT";
-  handler: (data: { frameId: string }) => void;
+  handler: (data: { preview?: boolean; frameId: string }) => void;
 }
 
 export interface ExportDoneHandler extends EventHandler {
   name: "EXPORT_DONE";
-  handler: (data: {
-    svg: Uint8Array;
-    pathData: Record<string, PathData>;
-    width: string;
-    height: string;
-    fileName: string;
-  }) => void;
+  handler: (data: ExportReadySVG & { preview?: boolean }) => void;
+}
+
+export interface ExportReadySVG {
+  svg: Uint8Array;
+  pathData: Record<string, PathData>;
+  width: string;
+  height: string;
+  fileName: string;
 }
 
 export interface PathSelection {
