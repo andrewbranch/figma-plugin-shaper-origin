@@ -4,7 +4,8 @@ import {
   Inline,
   VerticalSpace,
 } from "@create-figma-plugin/ui";
-import { emit } from "@create-figma-plugin/utilities";
+import { emit, on } from "@create-figma-plugin/utilities";
+import { Gesture } from "@use-gesture/vanilla";
 import { saveAs } from "file-saver";
 import { h } from "preact";
 import { useCallback, useEffect, useMemo, useRef } from "preact/hooks";
@@ -27,8 +28,8 @@ export function Preview(props: PreviewProps) {
     document.documentElement.removeChild(rendered);
     const parser = new DOMParser();
     const outlinedDoc = parser.parseFromString(outlinedString, "image/svg+xml");
-    return outlinedDoc.documentElement;
-  }, [props.preview]);
+    return outlinedDoc.documentElement as any as SVGSVGElement;
+  }, [encoded]);
 
   const handleBackClick = useCallback(() => {
     emit("CLOSE_PREVIEW");
@@ -43,18 +44,78 @@ export function Preview(props: PreviewProps) {
   }, [props.preview]);
 
   const bodyRef = useRef<HTMLDivElement>(null);
+  const eventTargetRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (bodyRef.current && svgElement) {
-      // I forgot how to CSS
-      svgElement.setAttribute(
-        "style",
-        "width: 100%; height: calc(100% - 2 * var(--space-small));"
-      );
+    let gesture: Gesture | undefined;
+    let resizeListener: () => void;
+    if (bodyRef.current && eventTargetRef.current && svgElement) {
       bodyRef.current.innerHTML = "";
       bodyRef.current.appendChild(svgElement);
+      const { width: originalWidth, height: originalHeight } =
+        svgElement.viewBox.baseVal;
+
+      let box = svgElement.getBoundingClientRect();
+      resizeListener = on(
+        "WINDOW_RESIZED",
+        () => (box = svgElement.getBoundingClientRect())
+      );
+
+      // handle zoom
+      gesture = new Gesture(
+        eventTargetRef.current,
+        {
+          onPinch: (state) => {
+            const scale = 1 / state.offset[0];
+            const [pointerX, pointerY] = state.origin;
+            const pointerXRatio = pointerX / box.width;
+            const pointerYRatio = pointerY / box.height;
+            const { width: prevWidth, height: prevHeight } =
+              svgElement.viewBox.baseVal;
+            const newWidth = originalWidth * scale;
+            const newHeight = originalHeight * scale;
+            const dw = newWidth - prevWidth;
+            const dh = newHeight - prevHeight;
+            // If pointer is far left, viewBox x doesn't move
+            // If pointer is far right, viewBox x moves left by dw to compensate
+            // If pointer is center, viewBox x moves left by dw / 2
+            const dx = -dw * pointerXRatio;
+            const dy = -dh * pointerYRatio;
+            svgElement.viewBox.baseVal.x += dx;
+            svgElement.viewBox.baseVal.y += dy;
+            svgElement.viewBox.baseVal.width = newWidth;
+            svgElement.viewBox.baseVal.height = newHeight;
+          },
+          onWheel: (state) => {
+            if (!state.pinching) {
+              svgElement.viewBox.baseVal.x =
+                svgElement.viewBox.baseVal.x +
+                (0.4 * state.delta[0] * svgElement.viewBox.baseVal.width) /
+                  originalWidth;
+
+              svgElement.viewBox.baseVal.y =
+                svgElement.viewBox.baseVal.y +
+                (0.4 * state.delta[1] * svgElement.viewBox.baseVal.height) /
+                  originalHeight;
+            }
+          },
+        },
+        {
+          pinch: {
+            scaleBounds: {
+              min: 0.1,
+              max: 10,
+            },
+          },
+        }
+      );
     }
-  }, [svgElement, bodyRef.current]);
+
+    return () => {
+      gesture?.destroy();
+      resizeListener?.();
+    };
+  }, [svgElement, bodyRef.current, eventTargetRef.current]);
 
   return (
     <div
@@ -64,14 +125,18 @@ export function Preview(props: PreviewProps) {
         justifyContent: "space-between",
         overflow: "hidden",
         height: "100%",
+        position: "relative",
       }}
     >
-      <div style={{ flex: "0 1 auto", overflow: "auto" }}>
-        <Container space="small">
-          <VerticalSpace space="small" />
-          <div ref={bodyRef} />
-          <VerticalSpace space="small" />
-        </Container>
+      <div
+        style={{ flex: "1 1 auto", overflow: "hidden" }}
+        ref={eventTargetRef}
+      >
+        {/* <Container space=""> */}
+        {/* <VerticalSpace space="small" /> */}
+        <div ref={bodyRef} />
+        {/* <VerticalSpace space="small" /> */}
+        {/* </Container> */}
       </div>
       <div>
         <Container

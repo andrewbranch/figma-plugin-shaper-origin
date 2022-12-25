@@ -20,6 +20,7 @@ import {
   getPathSelection,
   hasPathNodeParent,
   isPathNode,
+  windowConstraints,
 } from "./utils";
 
 export default function () {
@@ -102,6 +103,7 @@ export default function () {
   on("RESIZE_WINDOW", (windowSize: { width: number; height: number }) => {
     const { width, height } = windowSize;
     figma.ui.resize(width, height);
+    emit("WINDOW_RESIZED", { width, height });
   });
 
   showUI(defaultWindowSize);
@@ -117,8 +119,8 @@ function showPreviewWindow(
 ) {
   showUI(
     {
-      width,
-      height,
+      width: Math.max(windowConstraints.minWidth, width),
+      height: Math.max(windowConstraints.minHeight, height),
       title,
     },
     {

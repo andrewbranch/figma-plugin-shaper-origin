@@ -2,6 +2,7 @@
   "dependencies": {
     "@create-figma-plugin/ui": "^2.1.5",
     "@create-figma-plugin/utilities": "^2.1.5",
+    "@use-gesture/vanilla": "^10.2.23",
     "clipper-lib": "^6.4.2",
     "file-saver": "^2.0.5",
     "preact": "^10",

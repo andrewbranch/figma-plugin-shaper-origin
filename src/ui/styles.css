@@ -5,3 +5,10 @@ table {
 #create-figma-plugin {
   height: 100%;
 }
+
+.design {
+  stroke: rgb(27, 224, 158);
+}
+.cut {
+  fill: rgba(27, 224, 158, 0.3);
+}

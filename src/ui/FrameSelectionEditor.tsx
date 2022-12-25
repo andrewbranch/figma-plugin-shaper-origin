@@ -133,7 +133,7 @@ export function FrameSelectionEditor(props: FrameSelectionEditorProps) {
       >
         <Container
           space="small"
-          style={{ flex: "0 1 auto", width: "100%", overflow: "auto" }}
+          style={{ flex: "0 1 100%", width: "100%", overflow: "auto" }}
         >
           <VerticalSpace space="small" />
           <div

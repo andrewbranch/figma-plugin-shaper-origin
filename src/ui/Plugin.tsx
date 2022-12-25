@@ -5,6 +5,7 @@ import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { ExportReadySVG, Selection, SelectionChangeHandler } from "../types";
+import { windowConstraints } from "../utils";
 import { FrameSelectionEditor } from "./FrameSelectionEditor";
 import { PathSelectionEditor } from "./PathSelectionEditor";
 import { Preview } from "./preview/Preview";
@@ -17,15 +18,9 @@ function Plugin(props: { preview?: ExportReadySVG }) {
     });
   }, []);
 
-  useWindowResize(
-    (size) => {
-      emit("RESIZE_WINDOW", size);
-    },
-    {
-      minWidth: 320,
-      minHeight: 240,
-    }
-  );
+  useWindowResize((size) => {
+    emit("RESIZE_WINDOW", size);
+  }, windowConstraints);
 
   if (props.preview) {
     return <Preview preview={props.preview} />;
