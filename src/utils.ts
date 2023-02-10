@@ -73,12 +73,30 @@ export function serializePath(node: PathNode): SerializedPath {
   const frame = getContainingFrame(node);
   const defaultUnits = frame?.getPluginData("defaultUnits") || "in";
   assertRealUnit(defaultUnits, frame, "defaultUnits");
-  return {
+  const serializePath = {
     ...serializeNode(node),
     ...getPathData(node),
     isClosed: shapeIsClosed(node),
     defaultUnits,
   };
+
+  if (node.id.startsWith("I")) {
+    const [instanceId, pathId] = node.id.substring(1).split(";");
+    const component = (figma.getNodeById(instanceId) as InstanceNode)
+      .mainComponent;
+    const componentPath = component?.findOne((n) => n.id === pathId);
+    return {
+      ...serializePath,
+      componentData:
+        component && componentPath
+          ? {
+              ...getPathData(componentPath),
+              componentId: component.id,
+            }
+          : undefined,
+    };
+  }
+  return serializePath;
 }
 
 export function serializeNode(node: BaseNode): SerializedNode {

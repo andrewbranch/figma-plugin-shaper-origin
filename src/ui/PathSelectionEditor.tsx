@@ -8,7 +8,7 @@ import {
 } from "@create-figma-plugin/ui";
 import { Fragment, h } from "preact";
 import { PathSelection } from "../types";
-import { CutControls } from "./CutControlsProps";
+import { CutControls } from "./CutControls";
 import { Table } from "./Table";
 
 interface PathSelectionEditorProps {
@@ -17,12 +17,16 @@ interface PathSelectionEditorProps {
 export function PathSelectionEditor(props: PathSelectionEditorProps) {
   const { selection } = props;
   const cutDepth = selection.nodes.every(
-    (node) => node.cutDepth === selection.nodes[0].cutDepth
+    (node) =>
+      (node.cutDepth || node.componentData?.cutDepth) ===
+      selection.nodes[0].cutDepth
   )
     ? selection.nodes[0]?.cutDepth
     : "Mixed";
   const cutType = selection.nodes.every(
-    (node) => node.cutType === selection.nodes[0].cutType
+    (node) =>
+      (node.cutType || node.componentData?.cutType) ===
+      selection.nodes[0].cutType
   )
     ? selection.nodes[0]?.cutType
     : "Mixed";

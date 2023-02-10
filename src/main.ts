@@ -269,7 +269,13 @@ async function exportFrame(frame: FrameNode): Promise<ExportReadySVG> {
       counter = 2
     ): string {
       return nodes[name]
-        ? getName(`${name}_${counter}`, nodes, counter + 1)
+        ? getName(
+            `${
+              counter === 2 ? name : name.substring(0, name.lastIndexOf("_"))
+            }_${counter}`,
+            nodes,
+            counter + 1
+          )
         : name;
     }
   }

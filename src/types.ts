@@ -97,10 +97,15 @@ export interface SerializedNode {
   type: NodeType;
 }
 
+export interface ComponentData extends PathData {
+  componentId: string;
+}
+
 export interface SerializedPath extends SerializedNode, PathData {
   id: string;
   isClosed: boolean;
   defaultUnits: RealUnit;
+  componentData?: ComponentData;
 }
 
 export interface SelectionChangeHandler extends EventHandler {

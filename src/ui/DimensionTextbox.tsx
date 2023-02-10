@@ -29,8 +29,11 @@ export function DimensionTextbox(props: DimensionTextboxProps) {
   const handleValueInput = useCallback(
     (value: string) => {
       setValue((prevValue) => {
-        if (value !== prevValue && isRealDimensionString(value, ensurePositive)) {
-          onValidInput(value as RealDimensionString);
+        if (
+          value !== prevValue &&
+          (value === "" || isRealDimensionString(value, ensurePositive))
+        ) {
+          onValidInput(value);
         }
         return value;
       });
@@ -43,14 +46,16 @@ export function DimensionTextbox(props: DimensionTextboxProps) {
         return "";
       }
       const evaluated = tryEvaluate(value);
-      if (!evaluated || ensurePositive && evaluated.scalar < 0) {
+      if (!evaluated || (ensurePositive && evaluated.scalar < 0)) {
         return false;
       }
       if (ensurePositive && evaluated.scalar === 0) {
         return "";
       }
 
-      return toRealDimensionString(evaluated.unit ? evaluated : { ...evaluated, unit: defaultUnits });
+      return toRealDimensionString(
+        evaluated.unit ? evaluated : { ...evaluated, unit: defaultUnits }
+      );
     },
     [defaultUnits, ensurePositive]
   );

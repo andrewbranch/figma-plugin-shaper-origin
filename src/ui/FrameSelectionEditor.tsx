@@ -31,7 +31,7 @@ import {
   RealUnit,
   SetFrameDataHandler,
 } from "../types";
-import { CutControls } from "./CutControlsProps";
+import { CutControls } from "./CutControls";
 import { DimensionTextbox } from "./DimensionTextbox";
 import { Table } from "./Table";
 import { prepareEncodedSvg } from "./prepareEncodedSvg";
