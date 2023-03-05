@@ -159,6 +159,7 @@ function sendSelectionChange() {
 }
 
 function stageExport(frame: FrameNode) {
+  const frameData = getFrameData(frame);
   const stagingFrame = clearOrCreateStagingFrame(frame);
   const paths = getTopLevelPathNodes(stagingFrame);
   const outPaths: SceneNode[] = [];
@@ -219,6 +220,19 @@ function stageExport(frame: FrameNode) {
     outPaths.push(node);
   });
 
+  if (frameData.includeBoundaryAsGuide) {
+    const boundary = figma.createRectangle();
+    boundary.x = 0;
+    boundary.y = 0;
+    boundary.resize(frame.width, frame.height);
+    boundary.name = "Boundary";
+    boundary.setPluginData("cutType", "guide");
+    boundary.strokes = [{ type: "SOLID", color: { r: 0, g: 0.41, b: 1 } }];
+    boundary.fills = [];
+    stagingFrame.appendChild(boundary);
+    outPaths.push(boundary);
+  }
+
   return { stagingFrame, paths: outPaths };
 }
 
@@ -268,15 +282,23 @@ async function exportFrame(frame: FrameNode): Promise<ExportReadySVG> {
       nodes: Record<string, unknown>,
       counter = 2
     ): string {
-      return nodes[name]
-        ? getName(
-            `${
-              counter === 2 ? name : name.substring(0, name.lastIndexOf("_"))
-            }_${counter}`,
-            nodes,
-            counter + 1
-          )
-        : name;
+      return (
+        (
+          nodes[name]
+            ? getName(
+                `${
+                  counter === 2
+                    ? name
+                    : name.substring(0, name.lastIndexOf("_"))
+                }_${counter}`,
+                nodes,
+                counter + 1
+              )
+            : name
+        )
+          // TODO: check sequences of non-ASCII characters
+          .replace(/([^\x00-\x7F])/g, "Â$1")
+      );
     }
   }
 }
@@ -300,6 +322,9 @@ function clearOrCreateStagingFrame(sourceFrame: FrameNode) {
     ?.remove();
 
   const frame = sourceFrame.clone();
+  frame
+    .findAllWithCriteria({ types: ["INSTANCE"] })
+    .forEach((node) => node.detachInstance());
   page.appendChild(frame);
   return frame;
 }

@@ -136,6 +136,8 @@ export function getPathData(node: BaseNode): PathData {
 export function getFrameData(node: FrameNode): FrameData {
   const width = node.getPluginData("width");
   const defaultUnits = node.getPluginData("defaultUnits");
+  const includeBoundaryAsGuide =
+    node.getPluginData("exportBoundaryAsGuide") !== "false";
   if (width !== "") {
     assertRealDimension(width, /*ensurePositive*/ true, node, "width");
   }
@@ -145,6 +147,7 @@ export function getFrameData(node: FrameNode): FrameData {
   return {
     width: !width ? undefined : width,
     defaultUnits: !defaultUnits ? "in" : defaultUnits,
+    includeBoundaryAsGuide,
   };
 }
 
@@ -203,8 +206,9 @@ export function getPathSelection(
 
 export function formatVectorPath(data: string) {
   return data
-    .replace(/([a-z])([0-9])/gi, "$1 $2")
-    .replace(/([0-9])([a-z])/gi, "$1 $2");
+    .replace(/([mlhvcsqtaz])([0-9])/gi, "$1 $2")
+    .replace(/([0-9])([mlhvcsqtaz])/gi, "$1 $2")
+    .replace(/([mlhvcsqtaz])([mlhvcsqtaz])/gi, "$1 $2");
 }
 
 export const windowConstraints = {

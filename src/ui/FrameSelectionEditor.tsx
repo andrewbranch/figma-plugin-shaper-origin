@@ -187,7 +187,6 @@ export function FrameSelectionEditor(props: FrameSelectionEditorProps) {
           <Table>
             {selection.paths.nodes.map((node) => (
               <CutControls
-                key={node.id}
                 shapeIsClosed={node.isClosed}
                 nodeIds={[node.id]}
                 label={node.name}

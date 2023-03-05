@@ -1,7 +1,7 @@
 import { Text } from "@create-figma-plugin/ui";
 import { emit } from "@create-figma-plugin/utilities";
 import { h } from "preact";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import {
   CutType,
   RealDimensionString,
@@ -44,6 +44,10 @@ export function CutControls({
     },
     [nodeIds]
   );
+
+  useEffect(() => {
+    setCutType(initialCutType);
+  }, [nodeIds]);
 
   return (
     <Row>

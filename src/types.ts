@@ -66,6 +66,7 @@ export type RealDimensionString = `${number} ${RealUnit}`;
 export interface FrameData {
   defaultUnits: RealUnit;
   width?: RealDimensionString;
+  includeBoundaryAsGuide?: boolean;
 }
 
 export type SettableFrameData = {
