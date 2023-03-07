@@ -9,6 +9,9 @@ table {
 .design {
   stroke: rgb(27, 224, 158);
 }
+.design.guide {
+  stroke: rgb(80, 103, 193);
+}
 .cut {
   fill: rgba(27, 224, 158, 0.3);
 }

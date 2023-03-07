@@ -20,6 +20,7 @@ interface CutPaths {
 
 interface DesignPath {
   kind: "DESIGN_PATH";
+  cutType: CutType;
   d: string;
 }
 
@@ -38,6 +39,16 @@ export function getCutSVG(svgElement: SVGSVGElement) {
     const cutterDiameter = 15;
     if (cutType) {
       const offsetPaths = getCutPaths(pathElement, cutType, cutterDiameter);
+      if (!offsetPaths.cutContour) {
+        return [
+          {
+            kind: "DESIGN_PATH",
+            cutType,
+            d: offsetPaths.designPath,
+          },
+        ];
+      }
+
       return [
         {
           kind: "CUT_PATHS",
@@ -47,6 +58,7 @@ export function getCutSVG(svgElement: SVGSVGElement) {
         },
         {
           kind: "DESIGN_PATH",
+          cutType,
           d: offsetPaths.designPath,
         },
       ];
@@ -61,9 +73,9 @@ export function getCutSVG(svgElement: SVGSVGElement) {
     const pathElement = document.createElement("path");
     pathElement.setAttribute("d", path.d);
     pathElement.setAttribute("fill-rule", "evenodd");
+    pathElement.classList.add(path.cutType);
     if (path.kind === "CUT_PATHS") {
       pathElement.classList.add("cut");
-      pathElement.classList.add(path.cutType);
     } else {
       pathElement.classList.add("design");
       pathElement.setAttribute("fill", "none");
@@ -87,6 +99,12 @@ function getCutPaths(
     Clipper.PolyFillType.pftEvenOdd
   );
   paths = Clipper.Clipper.CleanPolygons(paths, 0.1 * scale);
+  if (cutType === "guide") {
+    return {
+      designPath: serializePaths(paths, scale),
+      cutContour: undefined,
+    };
+  }
 
   let centerlinePaths = paths;
 
